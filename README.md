@@ -66,3 +66,9 @@ Assistant Professor (Grade II), Department of Electrical Engineering
 Dr. B. C. Roy Engineering College, Durgapur, West Bengal, India
 Email: kingsuk.majumdar@bcrec.ac.in
 GitHub: [KingsukMajumdar](https://github.com/KingsukMajumdar)
+
+
+- **Version**
+ | Version no | Date |
+ | ----|----|
+ |V 1.0 | 2026-08-12|
