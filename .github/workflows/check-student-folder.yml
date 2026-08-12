@@ -1,0 +1,68 @@
+# ============================================================
+# Title      : check-student-folder.yml
+# Purpose    : Fail a pull request if it modifies any file outside
+#              the author's own students/<roll_no>/ folder
+# Repo       : Applied-Exponential-Models-for-Electrical-Engineering
+# OS         : Runs on GitHub-hosted ubuntu-latest runner
+# Version    : V1
+# Written on : 12-Aug-2026
+# Revision   : -
+# Author     : Kingsuk Majumdar
+# Copyright (c) 2026 Kingsuk Majumdar
+# ============================================================
+
+name: Check student folder scope
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  folder-scope-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get changed files
+        id: changed
+        run: |
+          git fetch origin main --depth=1
+          {
+            echo "files<<EOF"
+            git diff --name-only origin/main...HEAD
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Restrict PR to author's own folder
+        env:
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          CHANGED_FILES: ${{ steps.changed.outputs.files }}
+        run: |
+          ALLOWED_ROLL=$(grep -i ",${PR_AUTHOR}$" students-map.csv | cut -d',' -f1)
+
+          if [ -z "$ALLOWED_ROLL" ]; then
+            echo "ERROR: GitHub user '$PR_AUTHOR' not found in students-map.csv"
+            echo "Add a line: <roll_no>,${PR_AUTHOR}"
+            exit 1
+          fi
+          echo "PR author '$PR_AUTHOR' is mapped to students/$ALLOWED_ROLL/"
+
+          STATUS=0
+          while IFS= read -r FILE; do
+            [ -z "$FILE" ] && continue
+            case "$FILE" in
+              "students/$ALLOWED_ROLL/"*) ;;
+              *)
+                echo "BLOCKED: '$FILE' is outside students/$ALLOWED_ROLL/"
+                STATUS=1
+                ;;
+            esac
+          done <<< "$CHANGED_FILES"
+
+          if [ "$STATUS" -eq 0 ]; then
+            echo "All changed files are within the author's own folder. OK."
+          fi
+          exit "$STATUS"
