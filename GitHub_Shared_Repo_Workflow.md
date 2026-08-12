@@ -1,3 +1,10 @@
+---
+title: GitHub Shared Repository Workflow: Folder Level Access Control for Student Assignments
+author: Kingsuk Majumdar
+created: 2026-08-12
+repo: AOCEE581_681_B2024-28
+tags: [github, git, teaching, version-control, BCREC, EE-dept]
+---
 
 # 📘 GitHub Shared Repository Workflow: Folder Level Access Control for Student Assignments
 
@@ -25,7 +32,7 @@ Two audiences are covered here:
 
 ---
 
-## Part A — Setting Up the Shared Repository (Instructor Side)
+## Part A: Setting Up the Shared Repository (Instructor Side)
 
 ### A.1 Repository Layout
 
@@ -39,7 +46,14 @@ AOCEE581_681_B2024-28/
 ├── students-map.csv
 ├── students/
 │   ├── 120016244019/
+│   │   ├── Module_01/
+│   │   ├── Module_02/
+│   │   ├── Module_03/
+│   │   ├── Module_04/
+│   │   ├── Module_05/
+│   │   └── MiniProject/
 │   ├── 120016244040/
+│   │   └── (same six subfolders)
 │   ├── 120016244041/
 │   ├── 120016244056/
 │   ├── 120016244062/
@@ -48,9 +62,9 @@ AOCEE581_681_B2024-28/
 └── README.md
 ```
 
-The idea: every student gets exactly one folder under `students/`, named after their roll number. They may only ever modify files inside their own folder.
+The idea: every student gets exactly one folder under `students/`, named after their roll number, subdivided into fixed subfolders for each of the five modules plus the mini project. They may only ever modify files inside their own roll number folder, at any depth underneath it.
 
-### A.2 Clone the Repository — First Commands and What They Mean
+### A.2 Clone the Repository: First Commands and What They Mean
 
 ```bash
 cd ~/Documents
@@ -95,21 +109,33 @@ nano students-map.csv
 > [!note] Why a CI check instead of just trusting students
 > GitHub does not offer a native "this collaborator may only write to this one folder" permission. Repository access in GitHub is granted at the whole-repository level, not per path. A CI check plus a rule that blocks merging until the check passes is the standard way to simulate folder level write control.
 
-### A.4 Create the Student Folders
+### A.4 Create the Student Folders (with Module Subfolders)
+
+Since the course runs across five modules plus a mini project, each student's folder needs six fixed subfolders underneath it, rather than being flat. A short loop handles all seven students at once:
 
 ```bash
-mkdir -p students/120016244019 students/120016244040 students/120016244041 \
-         students/120016244056 students/120016244062 students/120016244064 \
-         students/120016244065
+STUDENTS=(120016244019 120016244040 120016244041 120016244056 120016244062 120016244064 120016244065)
+MODULES=(Module_01 Module_02 Module_03 Module_04 Module_05 MiniProject)
 
-for d in students/*/; do
-  echo "# Student folder: $(basename "$d")" > "${d}README.md"
+for s in "${STUDENTS[@]}"; do
+  for m in "${MODULES[@]}"; do
+    mkdir -p "students/$s/$m"
+    echo "# ${s}: ${m}" > "students/$s/$m/README.md"
+  done
 done
 ```
 
-Git does not track empty folders, so each one needs at least one file inside it (here, a small `README.md`) to actually exist once pushed.
+| Command | Meaning |
+|---|---|
+| `STUDENTS=(...)` / `MODULES=(...)` | Declares bash arrays, a list of values that can be looped over |
+| `for s in "${STUDENTS[@]}"; do ... done` | Loops once for every element in the `STUDENTS` array |
+| Nested `for m in "${MODULES[@]}"` | For each student, loops again over every module name, so all six subfolders get created per student |
 
-### A.5 Stage, Commit and Push — Command by Command
+Git does not track empty folders, so each of the 42 leaf subfolders (7 students × 6 modules) gets a small `README.md` placeholder to actually exist once pushed.
+
+**Naming convention for files placed inside these subfolders**, see **A.11** below, since it applies from the very first submission onward.
+
+### A.5 Stage, Commit and Push: Command by Command
 
 ```bash
 git add .github/ students-map.csv students/
@@ -233,13 +259,57 @@ At this point the repository is fully wired:
 - ✅ Direct pushes to `main` blocked for everyone except the admin
 - ✅ Test branch cleaned up
 
+### A.11 Submission Naming Convention (5 Modules + Mini Project)
+
+The content of each module's deliverable varies (some modules need only a code file, others a report, others both, others a dataset alongside the code), so the convention keeps the **folder structure fixed** while leaving **file types flexible**.
+
+**Fixed structure, inside every student's own folder:**
+
+```
+students/<roll_no>/
+├── Module_01/
+├── Module_02/
+├── Module_03/
+├── Module_04/
+├── Module_05/
+└── MiniProject/
+```
+
+**File naming pattern**, inside the relevant module subfolder:
+
+```
+<roll_no>_<TAG>_<short_descriptor>.<ext>
+```
+
+| Placeholder | Meaning |
+|---|---|
+| `<roll_no>` | The student's own roll number, e.g. `120016244019` |
+| `<TAG>` | One of `M01`, `M02`, `M03`, `M04`, `M05`, `MP` (MP = Mini Project) |
+| `<short_descriptor>` | A brief lowercase label describing the file: `code`, `report`, `dataset`, `plot`, `notes` |
+| `<ext>` | Actual file extension: `.py`, `.m`, `.c`, `.pdf`, `.csv`, etc |
+
+**Worked examples:**
+
+```
+students/120016244019/Module_01/120016244019_M01_code.py
+students/120016244019/Module_02/120016244019_M02_report.pdf
+students/120016244019/Module_03/120016244019_M03_code.m
+students/120016244019/Module_03/120016244019_M03_report.pdf
+students/120016244019/MiniProject/120016244019_MP_code.py
+students/120016244019/MiniProject/120016244019_MP_report.pdf
+students/120016244019/MiniProject/120016244019_MP_dataset.csv
+```
+
+> [!note] No change needed to the CI check for this
+> `folder-scope-check` only verifies that a changed file's path starts with `students/<roll_no>/`. Module subfolders nest further inside that same path, so the existing workflow enforces this without any modification.
+
 ---
 
-## Part B — Complete Worked Example for a Student
+## Part B: Complete Worked Example for a Student
 
 ### B.1 Scenario
 
-Student **Chanchal Bhattacharjee**, roll number `120016244019`, GitHub username `chanchal9641`, needs to submit the Week 1 assignment (say, a Python script and a short PDF report) into the shared repository, inside their own folder only.
+Student **Chanchal Bhattacharjee**, roll number `120016244019`, GitHub username `chanchal9641`, needs to submit the **Module 1** deliverable (a Python script and a short PDF report, following the naming convention in **A.11**) into the shared repository, inside their own `Module_01/` subfolder only.
 
 ### B.2 Fork the Repository
 
@@ -269,50 +339,50 @@ git remote -v
 
 `git remote -v` should now show two remotes: `origin` (Chanchal's fork) and `upstream` (the instructor's original).
 
-### B.4 Add Week 1 Assignment Files
+### B.4 Add Module 1 Assignment Files
 
 **Best practice: create a dedicated branch for this piece of work, rather than committing straight on `main`:**
 
 ```bash
-git checkout -b week1-assignment
+git checkout -b module1-submission
 ```
 
-**Then place the actual files inside the correct folder only:**
+**Then place the actual files inside the correct module subfolder only, following the naming convention from A.11:**
 
 ```
-students/120016244019/
-├── week1_assignment.py
-└── week1_report.pdf
+students/120016244019/Module_01/
+├── 120016244019_M01_code.py
+└── 120016244019_M01_report.pdf
 ```
 
-For example, if the files already exist elsewhere on the machine:
+For example, if the files already exist elsewhere on the machine, renamed to match the convention:
 
 ```bash
-cp ~/Downloads/week1_assignment.py students/120016244019/
-cp ~/Downloads/week1_report.pdf students/120016244019/
+cp ~/Downloads/exp_model_fit.py students/120016244019/Module_01/120016244019_M01_code.py
+cp ~/Downloads/module1_report.pdf students/120016244019/Module_01/120016244019_M01_report.pdf
 ```
 
 > [!warning] The one rule that matters most
-> Do not touch, rename, or delete anything outside `students/120016244019/`. Not `students-map.csv`, not another student's folder, not the workflow file. The automated check exists precisely to catch this, and will fail the pull request if violated.
+> Do not touch, rename, or delete anything outside `students/120016244019/`. Not `students-map.csv`, not another student's folder, not the workflow file. Within your own folder, keep each module's files inside that module's own subfolder. The automated check exists precisely to catch violations of the roll number boundary, and will fail the pull request if crossed.
 
 ### B.5 Commit and Push to the Fork
 
 ```bash
-git add students/120016244019/
+git add students/120016244019/Module_01/
 git status
-git commit -m "Add Week 1 assignment: exponential model fitting script and report"
-git push origin week1-assignment
+git commit -m "Add Module 1 submission: exponential model fitting script and report"
+git push origin module1-submission
 ```
 
-This uploads the new branch, with only the Week 1 files, to Chanchal's own fork (`origin`), not yet to the instructor's repository.
+This uploads the new branch, with only the Module 1 files, to Chanchal's own fork (`origin`), not yet to the instructor's repository.
 
 ### B.6 Open the Pull Request
 
 **On GitHub:**
 
-1. Visit the fork, GitHub will show a banner: *"week1-assignment had recent pushes"* with a **Compare & pull request** button
-2. Confirm: **base repository**: `KingsukMajumdar/AOCEE581_681_B2024-28`, **base**: `main` ← **head repository**: `chanchal9641/AOCEE581_681_B2024-28`, **compare**: `week1-assignment`
-3. Add a clear title, e.g. *"120016244019 — Week 1 Assignment Submission"*
+1. Visit the fork, GitHub will show a banner: *"module1-submission had recent pushes"* with a **Compare & pull request** button
+2. Confirm: **base repository**: `KingsukMajumdar/AOCEE581_681_B2024-28`, **base**: `main` ← **head repository**: `chanchal9641/AOCEE581_681_B2024-28`, **compare**: `module1-submission`
+3. Add a clear title, e.g. *"120016244019, Module 1 Submission"*
 4. Click **Create pull request**
 
 ### B.7 What Happens Automatically
@@ -332,17 +402,17 @@ The instructor reviews the PR (code, report, correctness) and merges it into `ma
 This happens if a file outside the student's own folder was accidentally modified, for example editing `students-map.csv` or another roll number's folder. The PR page will show:
 
 ```
-❌ Check student folder scope / folder-scope-check — Failing
+❌ Check student folder scope / folder-scope-check: Failing
 ```
 
 **To fix:**
 
 ```bash
-git checkout week1-assignment
+git checkout module1-submission
 git restore --source=main -- <the file that should not have changed>
 git add <that file>
 git commit -m "Remove unintended change outside own folder"
-git push origin week1-assignment
+git push origin module1-submission
 ```
 
 The check re-runs automatically on every new push to the same PR branch.
@@ -352,18 +422,18 @@ The check re-runs automatically on every new push to the same PR branch.
 If the instructor asks for a revision, or a second file needs to be added to the same submission, simply continue committing to the same branch:
 
 ```bash
-git checkout week1-assignment
-# make edits inside students/120016244019/ only
-git add students/120016244019/
-git commit -m "Revise Week 1 script per feedback"
-git push origin week1-assignment
+git checkout module1-submission
+# make edits inside students/120016244019/Module_01/ only
+git add students/120016244019/Module_01/
+git commit -m "Revise Module 1 script per feedback"
+git push origin module1-submission
 ```
 
 No need to open a new pull request, the existing one updates automatically and the check re-runs.
 
-### B.10 Keeping the Fork Updated for Future Weeks (Week 2, Week 3...)
+### B.10 Keeping the Fork Updated for Future Modules (Module 2, Module 3...)
 
-Before starting each new assignment, the fork should be synced with the instructor's latest `main`, in case new folders, checks, or resources were added:
+Before starting each new module's submission, the fork should be synced with the instructor's latest `main`, in case new folders, checks, or resources were added:
 
 ```bash
 git checkout main
@@ -378,11 +448,11 @@ git push origin main
 | `git merge upstream/main` | Merges those fetched changes into the local `main` branch |
 | `git push origin main` | Pushes the now updated `main` back to the student's own fork |
 
-**Then, for each new assignment, repeat from B.4:** create a new branch (`week2-assignment`), add files only inside the own roll number folder, commit, push, open PR.
+**Then, for each new module, repeat from B.4:** create a new branch (e.g. `module2-submission`, `module3-submission`, and finally `miniproject-submission`), add files only inside the matching subfolder (`Module_02/`, `Module_03/`, ..., `MiniProject/`) with the corresponding tag (`M02`, `M03`, ..., `MP`) in the filenames, commit, push, open PR.
 
 ---
 
-## Part C — Git Command Glossary (Quick Reference)
+## Part C: Git Command Glossary (Quick Reference)
 
 | Command | One-line meaning |
 |---|---|
@@ -404,7 +474,7 @@ git push origin main
 
 ---
 
-## Part D — Troubleshooting Log (Issues Actually Faced During This Setup)
+## Part D: Troubleshooting Log (Issues Actually Faced During This Setup)
 
 | Symptom | Cause | Fix |
 |---|---|---|
@@ -416,7 +486,7 @@ git push origin main
 
 ---
 
-## Part E — Reusing This Framework for Future Repositories
+## Part E: Reusing This Framework for Future Repositories
 
 This exact pattern (shared repo, per-roll-number folders, one CI workflow, one mapping CSV, one ruleset) can be copied for any future course:
 
