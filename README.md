@@ -8,7 +8,7 @@
 **Batch:** B2024-28, Academic Year 2026-27
 **Semester 5 (Part I):** Modules 1 to 5, 42 contact hours (this repository's current scope)
 **Semester 6 (Part II):** Modules 6 to 8, 32 contact hours (next academic year)
-**Venue:** Sim Lab-III, EE Dept., BCREC
+**Venue:** Sim Lab-III, EE Dept., BCREC.
 
 ---
 
