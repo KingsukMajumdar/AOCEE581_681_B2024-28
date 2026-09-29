@@ -55,6 +55,112 @@ AOCEE581_681_B2024-28/
 
 For the complete step by step walkthrough, including authentication setup and a full worked example, see the workflow documentation shared separately by the instructor.
 
+## 🔄 Keeping Your Fork Up to Date (Sync)
+
+### Why sync is needed
+
+Your fork is a copy **frozen at the moment you forked it**. When the instructor adds new notes, instructions, or checks to this repository, your fork does **not** update by itself. Three copies exist at any time:
+
+```text
+KingsukMajumdar/AOCEE581_681_B2024-28   ← "upstream"  (instructor's original, always latest)
+          │  Step 1: Sync fork (browser)
+          ▼
+<your_username>/AOCEE581_681_B2024-28   ← "origin"    (your fork on GitHub)
+          │  Step 2: git pull (terminal)
+          ▼
+~/Documents/AOCEE581_681_B2024-28       ← local clone on your own machine
+```
+
+Sync always flows **downward**: upstream to fork, then fork to machine.
+
+> **Note:** A late or out-of-date fork never harms other students' work. Git merges your pull request using the point where your branch started, so earlier submissions and new instructor notes already in `main` are kept. You sync to **see the latest instructions**, not to avoid damage.
+
+### Step 1: Sync your fork on GitHub (browser)
+
+1. Open **your fork**: `https://github.com/<your_username>/AOCEE581_681_B2024-28`
+2. Make sure the branch selector (top left) shows **`main`**.
+3. Below the green **Code** button, GitHub shows a line such as *"This branch is 4 commits behind KingsukMajumdar/AOCEE581_681_B2024-28:main"*.
+4. Click **Sync fork**, then **Update branch**.
+
+The line now reads *"This branch is up to date"*.
+
+> ⚠️ **Never click "Discard N commits".** It appears only if you committed directly on your fork's `main`, and it deletes those commits permanently. Use the terminal method below instead, or contact the instructor.
+
+### Step 2: Bring the update to your machine (terminal)
+
+```bash
+cd ~/Documents/AOCEE581_681_B2024-28
+git checkout main
+git pull origin main
+```
+
+| Command | Meaning |
+|---|---|
+| `git checkout main` | Switches to your local `main` branch |
+| `git pull origin main` | Downloads the updated `main` from **your fork** and merges it into your local `main` |
+
+### Alternative: Terminal only (Step 1 + Step 2 together)
+
+```bash
+cd ~/Documents/AOCEE581_681_B2024-28
+git remote -v
+git checkout main
+git fetch upstream
+git merge upstream/main
+git push origin main
+```
+
+| Command | Meaning |
+|---|---|
+| `git remote -v` | Lists remotes. Both `origin` (your fork) and `upstream` (instructor) must appear |
+| `git fetch upstream` | Downloads the latest history from this repository. Your files do not change yet |
+| `git merge upstream/main` | Merges that history into your local `main` |
+| `git push origin main` | Uploads the updated `main` to your fork, so the fork is also in sync |
+
+If `upstream` is missing, add it once:
+
+```bash
+git remote add upstream https://github.com/KingsukMajumdar/AOCEE581_681_B2024-28.git
+```
+
+### If your pull request is already open
+
+First sync `main` (above), then bring the update into your work branch:
+
+```bash
+git checkout module2-submission
+git merge main
+git push origin module2-submission
+```
+
+| Command | Meaning |
+|---|---|
+| `git merge main` | Brings the synced `main` into your work branch. No conflict arises, since you touch only your own folder |
+| `git push origin module2-submission` | Updates the open pull request. The folder check re-runs automatically |
+
+Browser alternative: click **Update branch** on the pull request page.
+
+### Routine before every new module
+
+```bash
+git checkout main
+git fetch upstream
+git merge upstream/main
+git push origin main
+git checkout -b module3-submission
+```
+
+**Sync first, then create the new branch.** Your new branch then starts from the latest version, with all current notes visible.
+
+### Quick troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| `fatal: 'upstream' does not appear to be a git repository` | Add the `upstream` remote as shown above |
+| An editor opens asking for a merge message | nano: `Ctrl+O`, `Enter`, `Ctrl+X`. vim: type `:wq` and press `Enter` |
+| `error: Your local changes would be overwritten` | Commit your edits first, or run `git stash`, sync, then `git stash pop` |
+| `CONFLICT (content)` | Run `git merge --abort` and contact the instructor. This never happens if you stay inside `students/<your_roll_no>/` |
+
 ## 📚 Reference Material
 
 Full syllabus, prerequisites, course outcomes, and assessment breakdown: see `syllabus/EE_AOC_581_681_Compact_Syllabus.pdf`
@@ -69,6 +175,8 @@ GitHub: [KingsukMajumdar](https://github.com/KingsukMajumdar)
 
 
 - **Version**
+  
  | Version no | Date |
  | ----|----|
  |V 1.0 | 2026-08-12|
+ |V 1.1 | 2026-09-29|
